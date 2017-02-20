@@ -92,21 +92,36 @@ function buildJscadWorkerScript(fullpath, fullscript) {
 // (Note: This function is appended together with the JSCAD script)
 //
 function includeJscad(fn) {
-// include the requested script via MemFs if possible
-  if (typeof(gMemFs) == 'object') {
-    for (var i = 0; i < gMemFs.length; i++) {
-      if (gMemFs[i].name == fn) {
-        eval(gMemFs[i].source);
-        return;
+  if (!self.includedFileNames) {
+    self.includedFileNames = [];
+  }
+
+  if (!self.includedFileNames.includes(fn)) {
+    // include the requested script via MemFs if possible
+    var source = null;
+    if (typeof(gMemFs) == 'object') {
+      var filename = fn.replace(/^.+\//, '');
+      for (var i = 0; i < gMemFs.length; i++) {
+        if (gMemFs[i].name == filename) {
+          source = gMemFs[i].source;
+        }
       }
     }
+
+    if (source) {
+      eval(source);
+    } else {
+      // otherwise include the requested script via importScripts
+      var url = self.relpath+fn;
+      if (fn.match(/^(https:|http:)/i)) {
+        url = fn;
+      }
+      importScripts(url);
+    }
+
+    self.includedFileNames.push(fn);
   }
-// include the requested script via importScripts
-  var url = self.relpath+fn;
-  if (fn.match(/^(https:|http:)/i)) {
-    url = fn;
-  }
-  importScripts(url);
+
   return true;
 };
 
