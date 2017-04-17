@@ -27,7 +27,7 @@ OpenJsCad.createConversionWorker = function() {
           if ('cache' in data && data.cache == true) {
             saveScript(data.filename,data.converted);
           }
-          gProcessor.setJsCad(data.converted,data.filename);
+          gProcessor.setJsCad(data.converted,data.filename,data.baseurl);
         }
       }
     };

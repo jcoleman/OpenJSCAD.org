@@ -1196,13 +1196,14 @@ OpenJsCad.Processor.prototype = {
 
   // script: javascript code
   // filename: optional, the name of the .jscad file
-  setJsCad: function(script, filename) {
+  setJsCad: function(script, filename, includePathBaseUrl) {
     if(!filename) filename = "openjscad.jscad";
     this.abort();
     this.paramDefinitions = [];
     this.paramControls = [];
     this.script = null;
     this.setError("");
+    this.includePathBaseUrl = includePathBaseUrl;
     var scripthaserrors = false;
     try
     {
@@ -1301,7 +1302,7 @@ OpenJsCad.Processor.prototype = {
   // create the worker
     var that = this;
     that.state = 1; // processing
-    that.worker = OpenJsCad.createJscadWorker( this.baseurl+this.filename, script,
+    that.worker = OpenJsCad.createJscadWorker( this.includePathBaseUrl+this.filename, script,
     // handle the results
       function(err, objs) {
         that.worker = null;

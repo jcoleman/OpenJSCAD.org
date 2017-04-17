@@ -327,18 +327,11 @@ $(document).ready(function() {
       }
       if(docUrl.match(/#(https?:\/\/\S+)$/)) {   // remote file referenced, e.g. http://openjscad.org/#http://somewhere/something.ext
         var u = RegExp.$1;
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET",remoteUrl+u,true);
         if(u.match(/\.(stl|gcode)$/i)) {
           xhr.overrideMimeType("text/plain; charset=x-user-defined");    // our pseudo binary retrieval (works with Chrome)
         }
         gProcessor.setStatus("Fetching "+u+" <img id=busy src='imgs/busy.gif'>");
-        xhr.onload = function() {
-          var data = JSON.parse(this.responseText);
-          fetchExample(data.file,data.url);
-          document.location = docUrl.replace(/#.*$/,'#');       // this won't reload the entire web-page
-        }
-        xhr.send();
+        fetchExample(u.replace(/^.+\//, ''), u);
       }
       else if(docUrl.match(/#(examples\/\S+)$/)) {    // local example, e.g. http://openjscad.org/#examples/example001.jscad
         var fn = RegExp.$1;
@@ -383,7 +376,7 @@ function fetchExample(fn,url) {
 
   if(1) {     // doesn't work off-line yet
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", fn, true);
+    xhr.open("GET", url || fn, true);
     if(fn.match(/\.(stl|gcode)$/i)) {
       xhr.overrideMimeType("text/plain; charset=x-user-defined");    // our pseudo binary retrieval (works with Chrome)
     }
@@ -391,15 +384,13 @@ function fetchExample(fn,url) {
     xhr.onload = function() {
         var source = this.responseText;
         var editorSource = source;
-        var path = fn;
+        var baseurl = url ? url.replace(/\/[^\/]+$/, '/') : gProcessor.baseurl;
+        var filename = url ? url.replace(/^.+\//, '') : fn;
 
-        _includePath = path.replace(/\/[^\/]+$/,'/');
-
-         gProcessor.setStatus("Converting "+fn+" <img id=busy src='imgs/busy.gif'>");
-         var worker = OpenJsCad.createConversionWorker();
-         var u = gProcessor.baseurl;
-      // NOTE: cache: false is set to allow evaluation of 'include' statements
-         worker.postMessage({baseurl: u, source: source, filename: fn, cache: false});
+        gProcessor.setStatus("Converting "+fn+" <img id=busy src='imgs/busy.gif'>");
+        var worker = OpenJsCad.createConversionWorker();
+        // NOTE: cache: false is set to allow evaluation of 'include' statements
+        worker.postMessage({baseurl: baseurl, source: source, filename: filename, cache: false});
       };
       xhr.send();
   }
